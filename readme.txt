@@ -33,7 +33,7 @@ To omit the file and line number from the function trace and display the functio
 
     define('MP_DISPLAY_FILES', false);
 
-This plugin was loosely based on [Frank BŸltge](http://bueltge.de/)'s [Debug Queries](http://wordpress.org/extend/plugins/debug-queries/) plugin, so a hearty thanks to him for the development of that.
+This plugin was loosely based on [Frank Bueltge](http://bueltge.de/)'s [Debug Queries](http://wordpress.org/extend/plugins/debug-queries/) plugin, so a hearty thanks to him for the development of that.
 
 If you'd like to grab development releases, see what new features are being added, or browse the source code please visit/follow the [GitHub repo](http://github.com/tombenner/mysql-profiler).
 
