@@ -85,6 +85,14 @@ class MysqlProfiler {
 		}
 		return $calls;		
 	}
+
+	private function get_explain($query) {
+		global $wpdb;
+
+		$results = $wpdb->get_results('EXPLAIN ' . $query);
+
+		return $results;
+	}
 	
 	private function get_trace_html($trace) {
 		if (!isset($trace['trace'])) {
@@ -183,6 +191,35 @@ class MysqlProfiler {
 						$trace = implode('<br />', $trace);
 					}
 					$trace_html = $trace;
+				}
+				if (!strncmp(strtolower($query), 'select', 6)) {
+					$explain = $this->get_explain($query);
+					$displayed_query .= '<div style="color: #999">';
+					foreach ($explain as $e) {
+						if (strlen($e->table) > 0) {
+							$displayed_query .= '<b>' . $e->select_type . '</b> `' . $e->table . '` [' . (isset($e->partitions) ? $e->partitions : 'nopart') . '] ';
+							if ($e->type == 'ALL')
+								$displayed_query .= '<span style="font-weight: bold; color: red;">' . $e->type . '</span> ';
+							else if ($e->type == 'system' || $e->type == 'const' || $e->type == 'eq_ref' || $e->type == 'ref')
+								$displayed_query .= '<span style="font-weight: bold; color: #00aa00;">' . $e->type . '</span> ';
+							else
+								$displayed_query .= '<span style="font-weight: bold">' . $e->type . '</span> ';
+							if ($e->possible_keys) {
+								$displayed_query .= $e->possible_keys . ' ';
+								if ($e->key) {
+									$displayed_query .= '<span style="color: #00aa00">' . $e->key . '(' . $e->key_len . ') </span>';
+								} else {
+									$displayed_query .= '<span style="color: #ff6666">no key used</span>';
+								}
+							} else {
+								$displayed_query .= '<span style="color: #ff0000">no key</span>';
+							}
+							$displayed_query .= $e->ref . ' ' . $e->rows . ' ';
+						}
+						$displayed_query .= '{' . $e->Extra . '}';
+						$displayed_query .= '<br>';
+					}
+					$displayed_query .= '</div>';
 				}
 				$html .= '<tr'.$class.'>';
 				$html .= '<td class="mp-column-id">'.($i+1).'</td>';

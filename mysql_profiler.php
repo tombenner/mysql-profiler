@@ -22,6 +22,9 @@ if (!defined('MP_DISPLAY_FILES')) {
 if (!defined('MP_HIGHLIGHT_SYNTAX')) {
 	define('MP_HIGHLIGHT_SYNTAX', true);
 }
+if (!defined('MP_EXPLAIN')) {
+    define('MP_EXPLAIN', true);
+}
 
 $profiler = new MysqlProfiler();
 
