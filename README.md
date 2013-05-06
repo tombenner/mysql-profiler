@@ -5,7 +5,7 @@ A SQL profiler for WordPress
 Description
 -----------
 
-MySQL Profiler displays debugging information about SQL queries to admin WordPress users.  For each query, the profiler displays the time, syntax-highlighted SQL, and a trace of the functions (as well as the file and line number that the functions were called from) that were called.
+MySQL Profiler displays debugging information about SQL queries to admin WordPress users.  For each query, the profiler displays the time, syntax-highlighted SQL, and a trace of the functions (as well as the file and line number that the functions were called from) that were called. Additionally, for SELECT queries, the profiler calls 'EXPLAIN SELECT ...' to get query plan. This is particularly useful to identify problematic queries that do not use any kind of indexes.
 
 The list can be sorted by any of its columns, so you can, for example:
 
@@ -28,6 +28,10 @@ To turn off syntax highlighting, put the following in wp-config.php:
 To omit the file and line number from the function trace and display the functions as a comma-separated list (to save vertical space), define the following in wp-config.php:
 
     define('MP_DISPLAY_FILES', false);
+
+To turn off EXPLAIN query plan, define the following in wp-config.php:
+
+    define('MP_EXPLAIN', false);
 
 This plugin was loosely based on [Frank Bueltge](http://bueltge.de/)'s [Debug Queries](http://wordpress.org/extend/plugins/debug-queries/) plugin, so a hearty thanks to him for the development of that.
 

@@ -15,11 +15,12 @@ class MysqlProfiler {
 			if ($this->highlight_syntax) {
 				require_once dirname(__FILE__).'/geshi/geshi.php';
 			}
-			wp_enqueue_script('datatables', plugins_url('datatables/js/jquery.dataTables.min.js', dirname(__FILE__)), array('jquery'));
+			wp_register_script( 'datatables', plugins_url('datatables/js/jquery.dataTables.min.js', dirname(__FILE__)), array('jquery'), '1.0.0', true );
 			wp_enqueue_style('datatables', plugins_url('datatables/css/jquery.dataTables.css', dirname(__FILE__)));
 			wp_enqueue_style('mysql-profiler', plugins_url('css/style.css', dirname(__FILE__)));
 			add_filter('query', array($this, 'on_query'));
 			add_action('wp_footer', array($this, 'wp_footer'), 1000);
+			add_action( 'wp_enqueue_scripts', array($this, 'wp_enqueue_scripts') );
 		}
 	}
 
@@ -31,6 +32,10 @@ class MysqlProfiler {
 		);
 		$this->log[] = $entry;
 		return $query;
+	}
+
+	public function wp_enqueue_scripts() {
+		wp_enqueue_script('datatables');
 	}
 
 	public function wp_footer() {
@@ -84,6 +89,14 @@ class MysqlProfiler {
 			);
 		}
 		return $calls;		
+	}
+
+	private function get_explain($query) {
+		global $wpdb;
+
+		$results = $wpdb->get_results('EXPLAIN ' . $query);
+
+		return $results;
 	}
 	
 	private function get_trace_html($trace) {
@@ -183,6 +196,35 @@ class MysqlProfiler {
 						$trace = implode('<br />', $trace);
 					}
 					$trace_html = $trace;
+				}
+				if (!strncmp(strtolower($query), 'select', 6)) {
+					$explain = $this->get_explain($query);
+					$displayed_query .= '<div style="color: #999">';
+					foreach ($explain as $e) {
+						if (strlen($e->table) > 0) {
+							$displayed_query .= '<b>' . $e->select_type . '</b> `' . $e->table . '` [' . (isset($e->partitions) ? $e->partitions : 'nopart') . '] ';
+							if ($e->type == 'ALL')
+								$displayed_query .= '<span style="font-weight: bold; color: red;">' . $e->type . '</span> ';
+							else if ($e->type == 'system' || $e->type == 'const' || $e->type == 'eq_ref' || $e->type == 'ref')
+								$displayed_query .= '<span style="font-weight: bold; color: #00aa00;">' . $e->type . '</span> ';
+							else
+								$displayed_query .= '<span style="font-weight: bold">' . $e->type . '</span> ';
+							if ($e->possible_keys) {
+								$displayed_query .= $e->possible_keys . ' ';
+								if ($e->key) {
+									$displayed_query .= '<span style="color: #00aa00">' . $e->key . '(' . $e->key_len . ') </span>';
+								} else {
+									$displayed_query .= '<span style="color: #ff6666">no key used</span>';
+								}
+							} else {
+								$displayed_query .= '<span style="color: #ff0000">no key</span>';
+							}
+							$displayed_query .= $e->ref . ' ' . $e->rows . ' ';
+						}
+						$displayed_query .= '{' . $e->Extra . '}';
+						$displayed_query .= '<br>';
+					}
+					$displayed_query .= '</div>';
 				}
 				$html .= '<tr'.$class.'>';
 				$html .= '<td class="mp-column-id">'.($i+1).'</td>';
