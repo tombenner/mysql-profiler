@@ -15,11 +15,12 @@ class MysqlProfiler {
 			if ($this->highlight_syntax) {
 				require_once dirname(__FILE__).'/geshi/geshi.php';
 			}
-			wp_enqueue_script('datatables', plugins_url('datatables/js/jquery.dataTables.min.js', dirname(__FILE__)), array('jquery'));
+			wp_register_script( 'datatables', plugins_url('datatables/js/jquery.dataTables.min.js', dirname(__FILE__)), array('jquery'), '1.0.0', true );
 			wp_enqueue_style('datatables', plugins_url('datatables/css/jquery.dataTables.css', dirname(__FILE__)));
 			wp_enqueue_style('mysql-profiler', plugins_url('css/style.css', dirname(__FILE__)));
 			add_filter('query', array($this, 'on_query'));
 			add_action('wp_footer', array($this, 'wp_footer'), 1000);
+			add_action( 'wp_enqueue_scripts', array($this, 'wp_enqueue_scripts') );
 		}
 	}
 
@@ -31,6 +32,10 @@ class MysqlProfiler {
 		);
 		$this->log[] = $entry;
 		return $query;
+	}
+
+	public function wp_enqueue_scripts() {
+		wp_enqueue_script('datatables');
 	}
 
 	public function wp_footer() {
